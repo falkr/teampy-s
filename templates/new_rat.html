@@ -1,0 +1,83 @@
+<html lang="en-US"><head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1"/>
+
+<title>New RAT</title>
+<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css" integrity="sha384-MCw98/SFnGE8fJT3GXwEOngsV7Zt27NXFoaoApmYm81iuXoPkFOJwJ8ERdknLPMO" crossorigin="anonymous">
+<link rel= "stylesheet" type= "text/css" href= "{{ url_for('static',filename='css/main.css') }}">
+
+
+<style>
+  body {
+  background-color: {{primary|safe}};
+}
+  
+main {
+    display: -ms-flexbox;
+    display: flex;
+    -ms-flex-align: center;
+    align-items: center;
+    padding-top: 40px;
+    padding-bottom: 40px;
+}
+</style>
+</head>
+
+<body>
+    <nav class="nav justify-content-center" style="background-color: {{primary|safe}}; color: white">
+        <div>{{ label|safe }}</div>    
+    </nav>
+<main role="main" class="container text-centerx">
+    
+    <div class="scratchcard card shadow p-3 rounded-lg ">
+      <h1>New Team RAT</h1>
+      
+<form action="{{action_url|safe}}">
+  <div class="form-group input-group-lg">
+    <label for="exampleFormControlInput1">Label</label>
+    <input type="text" class="form-control" id="label" name="label" placeholder="" value="Unit 1">
+    <small id="passwordHelpBlock" class="form-text text-muted">Lable for the card, like course code, lesson or unit.</small>
+  </div>
+    
+  <div class="form-group input-group-lg">
+    <label for="exampleFormControlSelect2">Number of Teams</label>
+    <input type="number" min="1" max="100" class="form-control" id="teams"  name="teams" aria-describedby="teamshelp" value="10">
+    <small id="teamshelp" class="form-text text-muted">The number of teams in your course.</small>
+  </div>
+
+  <div class="form-row">
+    <div class="form-group col-md-6 input-group-lg">
+      <label for="exampleFormControlSelect2">Questions</label>
+        <input type="number" min="1" max="20" class="form-control" id="questions"  name="questions"  aria-describedby="emailHelp" value="10">
+        <!--<small id="passwordHelpBlock" class="form-text text-muted">Number of questions.</small>-->
+    </div>
+    <div class="form-group col-md-6 input-group-lg">
+       <label for="exampleFormControlSelect2">Alternatives</label>
+      <select class="form-control" id="alternatives"  name="alternatives" >
+          <option>3</option>
+          <option selected="selected">4</option>
+          <option>5</option>
+        </select>
+        <!--<small id="passwordHelpBlock" class="form-text text-muted">Number of answer alternatives for each question (A, B, C,...)</small>-->
+    </div>
+  </div>
+
+  <div class="form-group input-group-lg">
+        <label for="exampleFormControlInput1">Solution or Card Code</label>
+        <input type="text" class="form-control" id="card" value="abcdabcdab" name="solution" >
+        <small id="passwordHelpBlock" class="form-text text-muted">The sequence of correct answers, for instance abcdabcdab. Must match the number of questions and answer alternatives. If you have an existing card code, use it instead.</small>
+  </div>
+  
+  
+  <div class="form-group input-group-lg float-right">
+    <button type="submit" class="btn btn-primary mb-2 btn-lg">Create</button>
+  </div>
+</form>
+      
+   </div><!-- scratchcard-->
+
+</main>
+<footer></footer>
+</body>
+</html>
