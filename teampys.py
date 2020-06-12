@@ -8,9 +8,20 @@ import string
 
 app = Flask(__name__)
 
+# all scratchcards
 cards = {}
+
+# teacher UUID to RAT
 rats_by_private_id = {}
+
+# student access to RAT
 rats_by_public_id = {}
+
+colors = ['STEELBLUE', 'CADETBLUE', 'LIGHTSEAGREEN', 'OLIVEDRAB', 
+    'YELLOWGREEN', 'FORESTGREEN', 'MEDIUMSEAGREEN', 'LIGHTGREEN', 
+    'LIMEGREEN', 'DARKMAGENTA', 'DARKORCHID', 'MEDIUMORCHID', 'ORCHID', 
+    'ORANGE', 'ORANGERED', 'CORAL', 'LIGHTSALMON', 'PALEVIOLETRED', 
+    'MEDIUMVIOLETRED', 'DEEPPINK', 'CRIMSON', 'SALMON']
 
 class AnswerState():
     def __init__(self, question, symbol, correct=False, uncovered=False):
@@ -70,8 +81,6 @@ class Question():
         return ''.join(s)
 
     def uncover(self, alternative):
-        print('question {} uncoiver {}'.format(self.number, alternative))
-        
         answer_state = self.answers[alternative]
         answer_state.uncovered = True
         if not self.started:
@@ -91,30 +100,27 @@ class Question():
 
 class Card():
 
-    def __init__(self, id, label, team, questions, alternatives, solution):
+    def __init__(self, id, label, team, questions, alternatives, solution, color):
         self.id = id
         self.label = 'Team Quiz' if label is None else label
         self.team = team
         self.questions = questions
         self.alternatives = alternatives
         self.solution = solution
+        self.color = color
 
     @staticmethod
-    def new_card(label, team, questions, alternatives, solution):
+    def new_card(label, team, questions, alternatives, solution, color):
         id = '{}'.format(uuid.uuid4())
-        # TODO get card from code
         questions = {}
         for index, c in enumerate(solution):
             questions[str(index+1)] = Question(index+1, c, alternatives=alternatives)
-        return Card(id, label, team, questions, alternatives, solution)
+        return Card(id, label, team, questions, alternatives, solution, color)
 
     def uncover(self, question, alternative):
         print('uncover {} {}'.format(question, alternative))
         question = self.questions[str(question)]
         question.uncover(alternative)
-        # check now if the right answer is found implicitly
-        # uncover the last remaining answer alternative
-        # TODO
 
     def get_card_html(self, base_url):
         s = []
@@ -122,7 +128,7 @@ class Card():
         s.append('<thead>')
         s.append('<tr>')
         s.append('<th></th>')
-        for symbol in 'ABCD': # TODO make flexible
+        for symbol in 'ABCDEFGH'[:self.alternatives]:
             s.append('<th>{}</th>'.format(symbol))
         s.append('</tr>')
         s.append('</thead>')
@@ -132,8 +138,7 @@ class Card():
         s.append('</tbody>')
         s.append('</table>')
         url = base_url + 'card/' + self.id
-        primary = 'red'
-        return render_template('card.html', table=''.join(s), label=self.label, team=self.team, url=url, primary=primary)
+        return render_template('card.html', table=''.join(s), label=self.label, team=self.team, url=url, primary=self.color)
 
     def get_link(self):
         return 'card/{}'.format(self.id)
@@ -173,7 +178,7 @@ class Card():
 
 class RAT():
 
-    def __init__(self, private_id, public_id, label, teams, questions, alternatives, solution):
+    def __init__(self, private_id, public_id, label, teams, questions, alternatives, solution, team_colors):
         self.private_id = private_id
         self.public_id = public_id
         self.label = label
@@ -183,25 +188,7 @@ class RAT():
         self.solution = solution
         self.card_ids_by_team = {}
         self.grabbed_rats = []
-
-    @staticmethod
-    def new_rat(label, teams, questions, alternatives, solution):
-        app.logger.debug('Create new RAT label: {}, teams: {}, questions: {}, alternatives: {}, solution: {}'.format(label, teams, questions, alternatives, solution))
-        private_id = '{}'.format(uuid.uuid4())
-        public_id = ''.join(random.choices(string.ascii_uppercase, k=5)) 
-        rat = RAT(private_id, public_id, label, teams, questions, alternatives, solution)
-        global rats_by_private_id
-        global rats_by_public_id
-        rats_by_private_id[private_id] = rat
-        rats_by_public_id[public_id] = rat
-        # create a new card for each team
-        global cards
-        for team in range(1, int(teams) + 1, 1):
-            team = str(team)
-            card = Card.new_card(label, team, int(questions), int(alternatives), solution)
-            cards[card.id] = card
-            rat.card_ids_by_team[team] = card.id
-        return rat
+        self.team_colors = team_colors
 
     def get_status_table(self, base_url):
         s = []
@@ -235,7 +222,7 @@ class RAT():
         for team in range(1, self.teams + 1, 1):
             # /grab/<public_id>/<team>
             url = base_url + 'grab/{}/{}'.format(self.public_id, team)
-            s.append('<li class="col mb-4"><a class="" href="{}"><div class="name text-decoration-none text-center pt-1 team">Team {}</div></a></li>'.format(url, team))
+            s.append('<li class="col mb-4"><a class="" href="{}"><div class="name text-decoration-none text-center pt-1 team" style="background-color: {}">Team {}</div></a></li>'.format(url, self.team_colors[team-1], team))
         return render_template('rat_students.html', teams=''.join(s), url=base_url + 'rat/' + self.public_id)
 
     def grab(self, team):
@@ -247,34 +234,69 @@ class RAT():
             return self.card_ids_by_team[team]
 
 
-def wrap_html(content):
-    s = []
-    s.append('<html>')
-    s.append('<head>')
-    s.append('</head>')
-    s.append('<body>')
-    s.append(content)
-    s.append('</body>')
-    s.append('</html>')
-    return ''.join(s)
-
 @app.route('/')
 def index():
-    return 'Digital RATs'
+    action_url = request.host_url + 'join'
+    return render_template('start.html', primary='#007bff', action_url=action_url)
+
+def return_student_page(public_id):
+    global rats_by_public_id
+    if public_id in rats_by_public_id:
+        rat = rats_by_public_id[public_id]
+        return rat.html_students(request.host_url)
+    return "Could not find rat"
+
+@app.route('/join', methods=['POST', 'GET'])
+def join():
+    rat = request.args['rat']
+    return return_student_page(rat)
+
+@app.route('/rat/<public_id>/')
+def show_rat_students(public_id):
+    return return_student_page(public_id)
 
 @app.route('/new/', methods=['POST', 'GET'])
 def new():
     action_url = request.host_url + 'create'
     return render_template('new_rat.html', primary='#007bff', action_url=action_url)
 
+
+
+
+def validate_solution(solution, questions, alternatives):
+    valid_alternatives = 'ABCDDEFGH'[:alternatives]
+    if len(solution) != questions:
+        return 'You specified {} questions, but provided {} solution alternatives.'.format(questions, len(solution))
+    for c in solution.upper():
+        if c not in valid_alternatives:
+            return 'The letter {} is not a valid solution with {} alternatives.'.format(c, alternatives)
+    return None # all okay
+
 @app.route('/create', methods=['POST', 'GET'])
 def create():
     label = request.args['label'] if 'label' in request.args else None
-    teams = request.args['teams']
-    questions = request.args['questions']
-    alternatives = request.args['alternatives']
+    teams = int(request.args['teams'])
+    questions = int(request.args['questions'])
+    alternatives = int(request.args['alternatives'])
     solution = request.args['solution']
-    rat = RAT.new_rat(label, teams, questions, alternatives, solution)
+    message = validate_solution(solution, questions, alternatives)
+    if message is not None:
+        return message
+    app.logger.debug('Create new RAT label: {}, teams: {}, questions: {}, alternatives: {}, solution: {}'.format(label, teams, questions, alternatives, solution))
+    private_id = '{}'.format(uuid.uuid4())
+    public_id = ''.join(random.choices(string.ascii_uppercase, k=5))
+    team_colors = random.sample(colors, teams) 
+    rat = RAT(private_id, public_id, label, teams, questions, alternatives, solution, team_colors)
+    global rats_by_private_id
+    global rats_by_public_id
+    rats_by_private_id[private_id] = rat
+    rats_by_public_id[public_id] = rat
+    # create a new card for each team
+    global cards
+    for team in range(1, int(teams) + 1, 1):
+        card = Card.new_card(label, str(team), int(questions), int(alternatives), solution, rat.team_colors[team-1])
+        cards[card.id] = card
+        rat.card_ids_by_team[str(team)] = card.id
     return redirect("../teacher/{}".format(rat.private_id), code=302)
 
 @app.route('/teacher/<private_id>/')
@@ -283,7 +305,7 @@ def show_rat_teacher(private_id):
     if private_id in rats_by_private_id:
         rat = rats_by_private_id[private_id]
         return rat.html_teacher(request.host_url)
-    return "Could not find rat"
+    return "Could not find rat. Currently there are {} RATs stored.".format(len(rats_by_private_id))
 
 @app.route('/card/<id>/')
 def show_card(id):
@@ -302,14 +324,6 @@ def show_card(id):
         return card.get_card_html(request.host_url)
     else:
         return "Could not find rat {}".format(rats_by_public_id)
-
-@app.route('/rat/<public_id>/')
-def show_rat_students(public_id):
-    global rats_by_public_id
-    if public_id in rats_by_public_id:
-        rat = rats_by_public_id[public_id]
-        return rat.html_students(request.host_url)
-    return "Could not find rat"
 
 @app.route('/grab/<public_id>/<team>')
 def grab_rat_students(public_id, team):

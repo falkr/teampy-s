@@ -10,6 +10,10 @@
   body {
   background-color: {{primary|safe}};
 }
+
+.btn-success.disabled {
+  color: {{primary|safe}} !important;
+}
   
 main {
     display: -ms-flexbox;
@@ -29,12 +33,12 @@ main {
 <main role="main" class="container text-center">
     <div class="scratchcard card shadow p-3 bg-white rounded-lg">
           <h1 class="card-title" style="color: {{primary|safe}}">Team {{ team }}</h1>
-          <p class="card-text">Click on the answer alternatives below. <a href=".">Refresh</a> the page to see changes made by the other team members.</p>
+          <p class="card-text">Click on the answer alternatives below. <a href="." style="color: {{primary|safe}}">Refresh</a> the page to see changes made by the other team members.</p>
           
             {{ table|safe }}
 
-    <div class="card-footer text-muted">
-        <div>Share this link with your team members:</div>
+    <div class="text-muted">
+        <div>Share this secret link with your team members:</div>
         <a class="text-secondary" href="{{ url|safe }}">{{ url|safe }}</a>
     </div>
         
