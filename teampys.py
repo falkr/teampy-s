@@ -1,7 +1,9 @@
+import io
 from flask import Flask
 from flask import request
 from flask import redirect
 from flask import render_template
+from flask import send_file
 import uuid
 import random
 import string
@@ -98,6 +100,11 @@ class Question():
             return self.first_guess
         return ''
 
+    def get_state_string_export(self):
+        if self.started:
+            return self.first_guess
+        return '-'
+
 class Card():
 
     def __init__(self, id, label, team, questions, alternatives, solution, color):
@@ -176,6 +183,13 @@ class Card():
         s.append('</tr>')
         return ''.join(s)
 
+    def get_text_result(self):
+        s = []
+        s.append('{}/'.format(self.team))
+        for q in self.questions.values():
+            s.append('{}'.format(q.get_state_string_export()))
+        return ''.join(s)
+
 class RAT():
 
     def __init__(self, private_id, public_id, label, teams, questions, alternatives, solution, team_colors):
@@ -232,6 +246,18 @@ class RAT():
             self.grabbed_rats.append(team)
             # TODO check if team exists
             return self.card_ids_by_team[team]
+    
+    def download(self, format):
+        global cards
+        if format == "string":
+            s = []
+            for card_id in self.card_ids_by_team.values():
+                card = cards[card_id]
+                s.append(card.get_text_result())
+            return send_file(io.BytesIO('\n'.join(s).encode('utf-8')),
+                     attachment_filename='trat.txt',
+                     as_attachment=True,
+                     mimetype='text/text')
 
 
 @app.route('/')
@@ -259,9 +285,6 @@ def show_rat_students(public_id):
 def new():
     action_url = request.host_url + 'create'
     return render_template('new_rat.html', primary='#007bff', action_url=action_url)
-
-
-
 
 def validate_solution(solution, questions, alternatives):
     valid_alternatives = 'ABCDDEFGH'[:alternatives]
@@ -344,3 +367,11 @@ def grab_rat_students(public_id, team):
             else:
                 return "Could not find card with ID {}".format(card_id)
 
+@app.route('/download/<private_id>/<format>/')
+def download(private_id, format):
+    print('x')
+    global rats_by_private_id
+    if private_id in rats_by_private_id:
+        rat = rats_by_private_id[private_id]
+        return rat.download(format)
+    return "Could not find rat. Currently there are {} RATs stored.".format(len(rats_by_private_id))
