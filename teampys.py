@@ -222,14 +222,15 @@ class RAT():
             card = cards[card_id]
             s.append(card.get_table_row(base_url))
         s.append('</tbody>')
-        s.append('<table>')
+        s.append('</table>')
         return ''.join(s)
 
     def html_teacher(self, base_url):
         s = []
         public_url = base_url + 'rat/{}'.format(self.public_id)
         private_url = base_url + 'teacher/{}'.format(self.private_id)
-        return render_template('rat_teacher.html', public_url=public_url, private_url=private_url, table=self.get_status_table(base_url))
+        download_url = base_url + 'download/{}'.format(self.private_id)
+        return render_template('rat_teacher.html', public_url=public_url, private_url=private_url, table=self.get_status_table(base_url), download_url=download_url)
 
     def html_students(self, base_url):
         s = []
@@ -237,7 +238,7 @@ class RAT():
             # /grab/<public_id>/<team>
             url = base_url + 'grab/{}/{}'.format(self.public_id, team)
             s.append('<li class="col mb-4"><a class="" href="{}"><div class="name text-decoration-none text-center pt-1 team" style="background-color: {}">Team {}</div></a></li>'.format(url, self.team_colors[team-1], team))
-        return render_template('rat_students.html', teams=''.join(s), url=base_url + 'rat/' + self.public_id)
+        return render_template('rat_students.html', teams=''.join(s), url=base_url, public_id=self.public_id)
 
     def grab(self, team):
         if team in self.grabbed_rats:
