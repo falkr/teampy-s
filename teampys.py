@@ -258,14 +258,16 @@ class RAT():
              'team_colors': self.team_colors,
              'grabbed_rats': self.grabbed_rats,
              'card_ids_by_team': self.card_ids_by_team}
-        d['questions'] = {key : self.questions[key].to_dict() for key in self.questions.keys()}
         return d
 
     @staticmethod
     def from_dict(d):
-        return RAT(
+        rat = RAT(
             d['private_id'], d['public_id'], 
             d['label'], d['teams'], d['questions'], d['alternatives'], d['solution'], d['team_colors'])
+        rat.grabbed_rats = d['grabbed_rats']
+        rat.card_ids_by_team = d['card_ids_by_team']
+        return rat
 
     def get_status_table(self, base_url, cards):
         s = []
@@ -329,30 +331,35 @@ rats_by_public_id = {}
 def find_rat_by_public_id(public_id):
     global rats_by_public_id
     if public_id in rats_by_public_id:
-        return rats_by_public_id[public_id]
+        return RAT.from_dict(rats_by_public_id[public_id])
     return None
 
 def find_rat_by_private_id(private_id):
     global rats_by_private_id
     if private_id in rats_by_private_id:
-        return rats_by_private_id[private_id]
+        d = rats_by_private_id[private_id]
+        print('---')
+        print(d)
+        return RAT.from_dict(d)
     return None
 
 def store_rat(rat):
     global rats_by_private_id
     global rats_by_public_id
-    rats_by_private_id[rat.private_id] = rat
-    rats_by_public_id[rat.public_id] = rat
+    d = rat.to_dict()
+    print(d)
+    rats_by_private_id[rat.private_id] = d
+    rats_by_public_id[rat.public_id] = d
 
 def find_card_by_id(card_id):
     global cards
     if card_id in cards:
-        return cards[card_id]
+        return Card.from_dict(cards[card_id])
     return None
 
 def store_card(card):
     global cards
-    cards[card.id] = card
+    cards[card.id] = card.to_dict()
 
 
 @app.route('/')
@@ -405,12 +412,12 @@ def create():
     public_id = ''.join(random.choices(string.ascii_uppercase, k=5))
     team_colors = random.sample(colors, teams) 
     rat = RAT(private_id, public_id, label, teams, questions, alternatives, solution, team_colors)
-    store_rat(rat)
     # create a new card for each team
     for team in range(1, int(teams) + 1, 1):
         card = Card.new_card(label, str(team), int(questions), int(alternatives), solution, rat.team_colors[team-1])
         store_card(card)
         rat.card_ids_by_team[str(team)] = card.id
+    store_rat(rat)
     return redirect("../teacher/{}".format(rat.private_id), code=302)
 
 @app.route('/teacher/<private_id>/')
