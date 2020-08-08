@@ -7,9 +7,16 @@ from flask import send_file
 import uuid
 import random
 import string
-import json
+from flask_pymongo import PyMongo
 
 app = Flask(__name__)
+
+app.config['SECRET_KEY'] = 'Hemmelig!'  ## is required
+app.config["MONGO_DBNAME"] = "ratdb"  ## DB name
+app.config["MONGO_URI"] = "mongodb://localhost:27017/ratdb"
+
+mongo = PyMongo(app)
+ratdb = mongo.db.ratdb
 
 colors = ['STEELBLUE', 'CADETBLUE', 'LIGHTSEAGREEN', 'OLIVEDRAB', 
     'YELLOWGREEN', 'FORESTGREEN', 'MEDIUMSEAGREEN', 'LIGHTGREEN', 
@@ -328,35 +335,59 @@ rats_by_private_id = {}
 # student access to RAT
 rats_by_public_id = {}
 
+use_variables = False
+
 def find_rat_by_public_id(public_id):
-    global rats_by_public_id
-    if public_id in rats_by_public_id:
-        return RAT.from_dict(json.loads(rats_by_public_id[public_id]))
+    if use_variables:
+        global rats_by_public_id
+        if public_id in rats_by_public_id:
+            return RAT.from_dict(rats_by_public_id[public_id])
+    else:
+        data = ratdb.find_one({'public_id': public_id})
+        if data:
+            return RAT.from_dict(data)
     return None
 
 def find_rat_by_private_id(private_id):
-    global rats_by_private_id
-    if private_id in rats_by_private_id:
-        d = rats_by_private_id[private_id]
-        return RAT.from_dict(json.loads(d))
+    if use_variables:
+        global rats_by_private_id
+        if private_id in rats_by_private_id:
+            d = rats_by_private_id[private_id]
+            return RAT.from_dict(d)
+    else:
+        data = ratdb.find_one({'private_id': private_id})
+        if data:
+            return RAT.from_dict(data)
     return None
 
 def store_rat(rat):
-    global rats_by_private_id
-    global rats_by_public_id
-    d = json.dumps(rat.to_dict())
-    rats_by_private_id[rat.private_id] = d
-    rats_by_public_id[rat.public_id] = d
+    data = rat.to_dict()
+    if use_variables:
+        global rats_by_private_id
+        global rats_by_public_id
+        rats_by_private_id[rat.private_id] = data
+        rats_by_public_id[rat.public_id] = data
+    else:
+        ratdb.replace_one({'private_id': rat.private_id}, data, upsert=True)
 
 def find_card_by_id(card_id):
-    global cards
-    if card_id in cards:
-        return Card.from_dict(json.loads(cards[card_id]))
+    if use_variables:
+        global cards
+        if card_id in cards:
+            return Card.from_dict(cards[card_id])
+    else:
+        data = ratdb.find_one({'id': card_id})
+        if data:
+            return Card.from_dict(data)
     return None
 
 def store_card(card):
-    global cards
-    cards[card.id] = json.dumps(card.to_dict())
+    data = card.to_dict()
+    if use_variables:
+        global cards
+        cards[card.id] = data
+    else:
+        ratdb.replace_one({'id': card.id}, data, upsert=True)
 
 
 @app.route('/')
