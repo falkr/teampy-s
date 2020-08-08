@@ -32,6 +32,16 @@ class AnswerState():
         self.correct = correct
         self.uncovered = uncovered
     
+    def to_dict(self):
+        d = {'symbol': self.symbol,
+             'correct': self.correct,
+             'uncovered': self.uncovered}
+        return d
+
+    @staticmethod
+    def from_dict(d, question):
+        return AnswerState(question, d['symbol'], d['correct'], d['uncovered'])
+    
     def html(self):
         s = []
         if self.uncovered:
@@ -60,16 +70,42 @@ class AnswerState():
         return ''.join(s)
 
 class Question():
-    def __init__(self, number, correct_alternative, alternatives=4):
+
+    def __init__(self, number, finished, started, correct_on_first_attempt, first_guess, answers):
         self.number = number
-        self.finished = False
-        self.started = False
-        self.correct_on_first_attempt = False
-        self.first_guess = None
-        self.answers = {}
+        self.finished = finished
+        self.started = started
+        self.correct_on_first_attempt = correct_on_first_attempt
+        self.first_guess = first_guess
+        self.answers = answers
+    
+    def to_dict(self):
+        d = {'number': self.number,
+             'finished': self.finished,
+             'started': self.started,
+             'correct_on_first_attempt': self.correct_on_first_attempt,
+             'first_guess': self.first_guess}
+        d['answers'] = {key : self.answers[key].to_dict() for key in self.answers.keys()}
+        return d
+
+    @staticmethod
+    def from_dict(d):
+        question = Question(d['number'], 
+            d['finished'], d['started'], 
+            d['correct_on_first_attempt'], d['first_guess'], None)
+        question.answers = {key: AnswerState.from_dict(d['answers'][key], question) for key in d['answers'].keys()}
+        return question
+  
+    @staticmethod
+    def new_question(number, correct_alternative, alternatives=4):
+        answers = {}
+        finished, started, correct_on_first_attempt = False, False, False
+        first_guess = None
+        question = Question(number, finished, started, correct_on_first_attempt, first_guess, answers)
         for symbol in 'ABCDEFGH'[:alternatives]:
             correct = symbol.lower() == correct_alternative.lower()
-            self.answers[symbol] = AnswerState(self, symbol, correct=correct)
+            question.answers[symbol] = AnswerState(question, symbol, correct=correct)
+        return question
     
     def html(self):
         s = []
@@ -116,16 +152,31 @@ class Card():
         self.solution = solution
         self.color = color
 
+    def to_dict(self):
+        d = {'id': self.id,
+             'label': self.label,
+             'team': self.team,
+             'alternatives': self.alternatives,
+             'solution': self.solution,
+             'color': self.color}
+        d['questions'] = {key : self.questions[key].to_dict() for key in self.questions.keys()}
+        return d
+
     @staticmethod
     def new_card(label, team, questions, alternatives, solution, color):
         id = '{}'.format(uuid.uuid4())
         questions = {}
         for index, c in enumerate(solution):
-            questions[str(index+1)] = Question(index+1, c, alternatives=alternatives)
+            questions[str(index+1)] = Question.new_question(index+1, c, alternatives=alternatives)
         return Card(id, label, team, questions, alternatives, solution, color)
 
+    @staticmethod
+    def from_dict(d):
+        questions = {key: Question.from_dict(d['questions'][key]) for key in d['questions'].keys()}
+        return Card(d['id'], d['label'], d['team'], 
+            questions, d['alternatives'], d['solution'], d['color'])
+
     def uncover(self, question, alternative):
-        print('uncover {} {}'.format(question, alternative))
         question = self.questions[str(question)]
         question.uncover(alternative)
 
@@ -203,6 +254,26 @@ class RAT():
         self.card_ids_by_team = {}
         self.grabbed_rats = []
         self.team_colors = team_colors
+
+    def to_dict(self):
+        d = {'private_id': self.private_id,
+             'public_id' : self.public_id,
+             'label': self.label,
+             'teams': self.teams,
+             'questions': self.questions,
+             'alternatives': self.alternatives,
+             'solution': self.solution,
+             'team_colors': self.team_colors,
+             'grabbed_rats': self.grabbed_rats,
+             'card_ids_by_team': self.card_ids_by_team}
+        d['questions'] = {key : self.questions[key].to_dict() for key in self.questions.keys()}
+        return d
+
+    @staticmethod
+    def from_dict(d):
+        return RAT(
+            d['private_id'], d['public_id'], 
+            d['label'], d['teams'], d['questions'], d['alternatives'], d['solution'], d['team_colors'])
 
     def get_status_table(self, base_url):
         s = []
@@ -370,7 +441,6 @@ def grab_rat_students(public_id, team):
 
 @app.route('/download/<private_id>/<format>/')
 def download(private_id, format):
-    print('x')
     global rats_by_private_id
     if private_id in rats_by_private_id:
         rat = rats_by_private_id[private_id]
