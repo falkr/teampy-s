@@ -331,35 +331,32 @@ rats_by_public_id = {}
 def find_rat_by_public_id(public_id):
     global rats_by_public_id
     if public_id in rats_by_public_id:
-        return RAT.from_dict(rats_by_public_id[public_id])
+        return RAT.from_dict(json.loads(rats_by_public_id[public_id]))
     return None
 
 def find_rat_by_private_id(private_id):
     global rats_by_private_id
     if private_id in rats_by_private_id:
         d = rats_by_private_id[private_id]
-        print('---')
-        print(d)
-        return RAT.from_dict(d)
+        return RAT.from_dict(json.loads(d))
     return None
 
 def store_rat(rat):
     global rats_by_private_id
     global rats_by_public_id
-    d = rat.to_dict()
-    print(d)
+    d = json.dumps(rat.to_dict())
     rats_by_private_id[rat.private_id] = d
     rats_by_public_id[rat.public_id] = d
 
 def find_card_by_id(card_id):
     global cards
     if card_id in cards:
-        return Card.from_dict(cards[card_id])
+        return Card.from_dict(json.loads(cards[card_id]))
     return None
 
 def store_card(card):
     global cards
-    cards[card.id] = card.to_dict()
+    cards[card.id] = json.dumps(card.to_dict())
 
 
 @app.route('/')
