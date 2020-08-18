@@ -15,7 +15,7 @@ Alternatively, you can write the questions using [Teampy](https://falkr.github.i
 
 Assign your students to teams, and number each team with natural numbers (1, 2,...)
 
-# Creating Digital Scratch Cards
+# Creating Digital Team RAT
 
 
 Visit the page <https://rat.it.ntnu.no/new> to create a new RAT.
@@ -65,7 +65,7 @@ The procedure works as follows:
 4. The student then sees the digital scratch card for their team and should share the secret link to that card with the other team members.
 
 
-# Digital Scratch Card
+# Digital Team Card
 
 The card shows one row for each answer. 
 

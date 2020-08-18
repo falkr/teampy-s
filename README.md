@@ -1,2 +1,3 @@
-# teampy-2
-Server for online RATs.
+# Digital Team RATs
+
+* [User Documentation](https://falkr.github.io/teampy-s/)
