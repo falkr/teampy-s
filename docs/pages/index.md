@@ -6,9 +6,9 @@ Create your RAT questions and answer alternatives in any form suitable for you a
 
 * All questions must have the same number of answer alternatives, either 3, 4, or 5. (The default is often 4.)
 
-* Write down the sequence of the correct answers. This means you do the shuffeling of your answers on yoour own. 
+* Write down the sequence of the correct answers. This means you do the shuffling of your answers on your own. 
 
-Alternatively, you can write the questions using [Teampy](https://falkr.github.io/teampy/), let Teampy shuffel your answers and use the resulting PDF.
+Alternatively, you can write the questions using [Teampy](https://falkr.github.io/teampy/), let Teampy shuffle your answers and use the resulting PDF.
 
 
 # Creating Teams
@@ -27,7 +27,7 @@ source: figures/new-rat.png
 
 * The **label** can be the course code or the unit. It can also be empty.
 * The **number of teams** determines how many scratch cards you will create. They will all be numbered from 1 to the number you provide.
-* The **questions** identifies the number of questions, and **altneratives** the number of answers, like `4` for `abcd`.
+* The **questions** identify the number of questions, and **alternatives** the number of answers, like `4` for `abcd`.
 * The solution is a string that identifies the correct answer of your RAT.
 
 
@@ -40,7 +40,7 @@ type: figure
 source: figures/teacher.png
 ---
 
-The long link at the top of the page is the link to the teacher panel. **We recommend to bookmark this link.** Without this link you will loose access to the RAT.
+The long link at the top of the page is the link to the teacher panel. **We recommend to bookmark this link.** Without this link you will lose access to the RAT.
 
 The second link points to the student page, which you should display to your students. (See below.)
 
@@ -83,4 +83,4 @@ Correct answers will show a colored checkmark, wrong answer alternatives are emp
 
 # Results
 
-On the teacher's page, you can download a text file that shows all the answer of the teams. Alternatively, the table shows the score for each team, which is just the number of correct answers. Here, questions only count as correctly answered if the first answer was the correct one. If you 
+On the teacher's page, you can download a text file that shows all the answers of the teams. Alternatively, the table shows the score for each team, which is just the number of correct answers. Here, questions only count as correctly answered if the first answer was the correct one. If you 
