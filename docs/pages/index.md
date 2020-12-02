@@ -83,4 +83,4 @@ Correct answers will show a colored checkmark, wrong answer alternatives are emp
 
 # Results
 
-On the teacher's page, you can download a text file that shows all the answers of the teams. Alternatively, the table shows the score for each team, which is just the number of correct answers. Here, questions only count as correctly answered if the first answer was the correct one. If you 
+On the teacher's page, you can download a text file that shows all the answers of the teams. Alternatively, the table shows the score for each team, which is just the number of correct answers. Here, questions only count as correctly answered if the first answer was the correct one. 
