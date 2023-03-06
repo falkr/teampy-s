@@ -18,7 +18,7 @@ Assign your students to teams, and number each team with natural numbers (1, 2,.
 # Creating Digital Team RAT
 
 
-Visit the page <https://rat.iik.ntnu.no/new> to create a new RAT.
+Visit the page <http://rat.iik.ntnu.no/new> to create a new RAT.
 
 ---
 type: figure
@@ -59,7 +59,7 @@ source: figures/students.png
 
 The procedure works as follows:
 
-1. **One** student of a team visits the main page <https://rat.iik.ntnu.no>.
+1. **One** student of a team visits the main page <http://rat.iik.ntnu.no>.
 2. The student enters the code displayed.
 3. The student will see the student page as displayed above, and click the link on their specific team number. This link will only work once.
 4. The student then sees the digital scratch card for their team and should share the secret link to that card with the other team members.
